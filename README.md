@@ -43,12 +43,14 @@ see `nuts.test_nuts6`
 	"""
 	Example of a target distribution that could be sampled from using NUTS.
 	(Doesn't include the normalizing constant.)
-	"""
 
-	# Precision matrix with covariance [1, 1.98; 1.98, 4].
-	# A = np.linalg.inv( cov )
+	Note: 
+	cov = [1, 1.98; 1.98, 4]
+	A = np.linalg.inv( cov )
 	A = np.asarray([[50.251256, -24.874372],
 			[-24.874372, 12.562814]])
+	"""
+
 
 	grad = -np.dot(theta, A)
 	logp = 0.5 * np.dot(grad, theta.T)
