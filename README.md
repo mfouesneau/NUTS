@@ -40,21 +40,18 @@ see `nuts.test_nuts6`
 * define a log-likelihood and gradient function:
 ```python
 	def correlated_normal(theta):
-		"""
-		Example of a target distribution that could be sampled from using NUTS.
-		(Doesn't include the normalizing constant.)
-
-		Note: 
-		cov = [1, 1.98; 1.98, 4]
-		A = np.linalg.inv( cov )
-		A = np.asarray([[50.251256, -24.874372],
-				[-24.874372, 12.562814]])
-		"""
+	""" Example of a target distribution that could be sampled from using NUTS.  (Doesn't include the normalizing constant.)
+	Note: 
+	cov = [1, 1.98; 1.98, 4]
+	A = np.linalg.inv( cov )
+	A = np.asarray([[50.251256, -24.874372],
+			[-24.874372, 12.562814]])
+	"""
 
 
-		grad = -np.dot(theta, A)
-		logp = 0.5 * np.dot(grad, theta.T)
-		return logp, grad
+	grad = -np.dot(theta, A)
+	logp = 0.5 * np.dot(grad, theta.T)
+	return logp, grad
 ```
 
 * set your initial conditions: number of dimensions, _number of steps, number of adaptation/burning steps, initial guess, and initial step size._
