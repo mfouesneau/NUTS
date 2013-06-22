@@ -38,25 +38,27 @@ see `nuts.test_nuts6`
 
 
 * define a log-likelihood and gradient function:
-
+```python
 	def correlated_normal(theta):
-	"""
-	Example of a target distribution that could be sampled from using NUTS.
-	(Doesn't include the normalizing constant.)
+		"""
+		Example of a target distribution that could be sampled from using NUTS.
+		(Doesn't include the normalizing constant.)
 
-	Note: 
-	cov = [1, 1.98; 1.98, 4]
-	A = np.linalg.inv( cov )
-	A = np.asarray([[50.251256, -24.874372],
-			[-24.874372, 12.562814]])
-	"""
+		Note: 
+		cov = [1, 1.98; 1.98, 4]
+		A = np.linalg.inv( cov )
+		A = np.asarray([[50.251256, -24.874372],
+				[-24.874372, 12.562814]])
+		"""
 
 
-	grad = -np.dot(theta, A)
-	logp = 0.5 * np.dot(grad, theta.T)
-	return logp, grad
+		grad = -np.dot(theta, A)
+		logp = 0.5 * np.dot(grad, theta.T)
+		return logp, grad
+```
 
 * set your initial conditions: number of dimensions, _number of steps, number of adaptation/burning steps, initial guess, and initial step size._
+```python
 	D = 2
 	M = 5000
 	Madapt = 5000
@@ -66,21 +68,25 @@ see `nuts.test_nuts6`
 	mean = np.zeros(2)
 	cov = np.asarray([[1, 1.98],
 			[1.98, 4]])
+```
 
 * run the sampling:
 	samples, lnprob, epsilon = nuts6(correlated_normal, M, Madapt, theta0, delta)
 
 * some statistics: expecting mean = (0, 0) and std = (1., 4.)
+```python
 	samples = samples[1::10, :]
 	print('Mean: {}'.format(np.mean(samples, axis=0)))
 	print('Stddev: {}'.format(np.std(samples, axis=0)))
-
+```
 * a quick plot:
+```python
 	import pylab as plt
 	temp = np.random.multivariate_normal(mean, cov, size=500)
 	plt.plot(temp[:, 0], temp[:, 1], '.')
 	plt.plot(samples[:, 0], samples[:, 1], 'r+')
 	plt.show()
+```
 
 
 Example usage as an EMCEE sampler
@@ -88,14 +94,19 @@ Example usage as an EMCEE sampler
 see `emcee_nuts.test_sampler`
 
 * define a log-likelihood function:
+```python
 	def lnprobfn(theta):
 		return correlated_normal(theta)[0]
+```
 
 * define a gradient function (if not numerical estimates are made, but slower):
+```python
 	def gradfn(theta):
 		return correlated_normal(theta)[1]
+```
 
 * set your initial conditions: number of dimensions, _number of steps, number of adaptation/burning steps, initial guess, and initial step size._
+```python
 	D = 2
 	M = 5000
 	Madapt = 5000
@@ -105,9 +116,11 @@ see `emcee_nuts.test_sampler`
 	mean = np.zeros(2)
 	cov = np.asarray([[1, 1.98],
 			[1.98, 4]])
+```
 
 * run the sampling:
+```python
 	sampler = NUTSSampler(D, lnprobfn, gradfn)
 	samples = sampler.run_mcmc( theta0, M, Madapt, delta )
-
+```
 
