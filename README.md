@@ -38,6 +38,7 @@ see `nuts.test_nuts6`
 
 
 * define a log-likelihood and gradient function:
+
 ```python
 def correlated_normal(theta):
     """ Example of a target distribution that could be sampled from using NUTS.  (Doesn't include the normalizing constant.)
