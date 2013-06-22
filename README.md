@@ -28,10 +28,10 @@ Moreover, Hoffman & Gelman derived a method for adapting the step size parameter
 
 In practice, the implementation still requires a number of steps, a burning period and a stepsize. However, the stepsize will be optimized during the burning period, and the final values of all the user-defined values will be revised by the algorithm.
 
-reference: [arXiv:1111.4246][1]
-"The No-U-Turn Sampler: Adaptively Setting Path Lengths in Hamiltonian Monte Carlo", Matthew D. Hoffman & Andrew Gelman
+**reference**: 
+[arXiv:1111.4246][1]: Matthew D. Hoffman & Andrew Gelman, "_The No-U-Turn Sampler: Adaptively Setting Path Lengths in Hamiltonian Monte Carlo_"
 
-[1]: arXiv:1111.4246
+[1]: http://arxiv.org/abs/1111.4246
 
 Example Usage
 -------------
@@ -96,7 +96,6 @@ plt.show()
 ```
 Example usage as an EMCEE sampler
 ---------------------------------
-**wer**
 
 see `emcee_nuts.test_sampler`
 
