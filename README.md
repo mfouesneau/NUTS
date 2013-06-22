@@ -94,10 +94,9 @@ plt.plot(samples[:, 0], samples[:, 1], 'r+')
 plt.show()
 ```
 
-
 Example usage as an EMCEE sampler
 ---------------------------------
-**Same as above using the NUTSSampler with emcee**
+
 see `emcee_nuts.test_sampler`
 
 * define a log-likelihood function:
