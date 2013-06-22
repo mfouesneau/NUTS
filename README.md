@@ -99,33 +99,37 @@ Example usage as an EMCEE sampler
 see `emcee_nuts.test_sampler`
 
 * define a log-likelihood function:
+
 ```python
-	def lnprobfn(theta):
-		return correlated_normal(theta)[0]
+def lnprobfn(theta):
+    return correlated_normal(theta)[0]
 ```
 
 * define a gradient function (if not numerical estimates are made, but slower):
+
 ```python
-	def gradfn(theta):
-		return correlated_normal(theta)[1]
+def gradfn(theta):
+    return correlated_normal(theta)[1]
 ```
 
 * set your initial conditions: number of dimensions, _number of steps, number of adaptation/burning steps, initial guess, and initial step size._
-```python
-	D = 2
-	M = 5000
-	Madapt = 5000
-	theta0 = np.random.normal(0, 1, D)
-	delta = 0.2
 
-	mean = np.zeros(2)
-	cov = np.asarray([[1, 1.98],
-			[1.98, 4]])
+```python
+D = 2
+M = 5000
+Madapt = 5000
+theta0 = np.random.normal(0, 1, D)
+delta = 0.2
+
+mean = np.zeros(2)
+cov = np.asarray([[1, 1.98],
+                  [1.98, 4]])
 ```
 
 * run the sampling:
+
 ```python
-	sampler = NUTSSampler(D, lnprobfn, gradfn)
-	samples = sampler.run_mcmc( theta0, M, Madapt, delta )
+sampler = NUTSSampler(D, lnprobfn, gradfn)
+samples = sampler.run_mcmc( theta0, M, Madapt, delta )
 ```
 
