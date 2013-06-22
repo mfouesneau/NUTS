@@ -7,9 +7,10 @@ Content
 -------
 
 The package mainly contains:
-	nuts6                     return samples using the NUTS
-	numerical_grad            return numerical estimate of the local gradient
-	emcee                     emcee NUTS sampler 
+
+| `nuts6`          |return samples using the NUTS                  |
+| `numerical_grad` |return numerical estimate of the local gradient|
+| `emcee`          |emcee NUTS sampler                             |
 
 
 A few words about NUTS
