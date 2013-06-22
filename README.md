@@ -8,9 +8,9 @@ Content
 
 The package mainly contains:
 
-| `nuts6`          |return samples using the NUTS                  |
-| `numerical_grad` |return numerical estimate of the local gradient|
-| `emcee`          |emcee NUTS sampler                             |
+* `nuts.nuts6`              return samples using the NUTS                  
+* `nuts.numerical_grad`     return numerical estimate of the local gradient
+* `emcee_nuts.NUTSSampler`  emcee NUTS sampler                             
 
 
 A few words about NUTS
