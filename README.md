@@ -1,7 +1,7 @@
 No-U-Turn Sampler (NUTS) for python
 ===================================
 
-This package implements the No-U-Turn Sampler (NUTS) algorithm 6 from the NUTS paper (Hoffman & Gelman, 2011).
+This package implements the No-U-Turn Sampler (NUTS) algorithm 6 from the NUTS paper ([Hoffman & Gelman, 2011][1]).
 
 Content
 -------
@@ -28,9 +28,10 @@ Moreover, Hoffman & Gelman derived a method for adapting the step size parameter
 
 In practice, the implementation still requires a number of steps, a burning period and a stepsize. However, the stepsize will be optimized during the burning period, and the final values of all the user-defined values will be revised by the algorithm.
 
-reference: arXiv:1111.4246
+reference: [arXiv:1111.4246][1]
 "The No-U-Turn Sampler: Adaptively Setting Path Lengths in Hamiltonian Monte Carlo", Matthew D. Hoffman & Andrew Gelman
 
+[1]: arXiv:1111.4246
 
 Example Usage
 -------------
@@ -46,18 +47,18 @@ def correlated_normal(theta):
     Note: 
     cov = np.asarray([[1, 1.98],
                       [1.98, 4]])
-    A = np.linalg.inv( cov )
-    A = np.asarray([[50.251256, -24.874372],
-                    [-24.874372, 12.562814]])
     """
 
+    #A = np.linalg.inv( cov )
+    A = np.asarray([[50.251256, -24.874372],
+                    [-24.874372, 12.562814]])
 
     grad = -np.dot(theta, A)
     logp = 0.5 * np.dot(grad, theta.T)
     return logp, grad
 ```
 
-* set your initial conditions: number of dimensions, _number of steps, number of adaptation/burning steps, initial guess, and initial step size._
+* set your initial conditions: number of dimensions, _number of steps, number of adaptation/burning steps, initial guess, and initial step size.
 
 ```python
 D = 2
@@ -93,9 +94,9 @@ plt.plot(temp[:, 0], temp[:, 1], '.')
 plt.plot(samples[:, 0], samples[:, 1], 'r+')
 plt.show()
 ```
-
 Example usage as an EMCEE sampler
 ---------------------------------
+**wer**
 
 see `emcee_nuts.test_sampler`
 
