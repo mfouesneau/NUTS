@@ -10,7 +10,7 @@ The package mainly contains:
 
 * `nuts.nuts6`              return samples using the NUTS                  
 * `nuts.numerical_grad`     return numerical estimate of the local gradient
-* `emcee_nuts.NUTSSampler`  emcee NUTS sampler                             
+* `emcee_nuts.NUTSSampler`  emcee NUTS sampler, a derived class from `emcee.Sampler`
 
 
 A few words about NUTS
@@ -97,6 +97,7 @@ plt.show()
 
 Example usage as an EMCEE sampler
 ---------------------------------
+**Same as above using the NUTSSampler with emcee**
 see `emcee_nuts.test_sampler`
 
 * define a log-likelihood function:
