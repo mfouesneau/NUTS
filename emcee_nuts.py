@@ -15,7 +15,10 @@ class NUTSSampler(Sampler):
     def __init__(self, dim, lnprobfn, gradfn=None, *args, **kwargs):
             self.dim = dim
             self.lnprobfn = _function_wrapper(lnprobfn, args)
-            self.gradfn = _function_wrapper(gradfn, [])
+            if gradfn is not None:
+                self.gradfn = _function_wrapper(gradfn, [])
+            else:
+                self.gradfn = None
 
             self.reset()
 
@@ -77,9 +80,10 @@ class NUTSSampler(Sampler):
         """An alias for :func:`reset` kept for backwards compatibility."""
         return self.reset()
 
-    def _sample_fn(self, p):
+    def _sample_fn(self, p, dx=1e-3, order=1):
         """ proxy function for nuts6 """
         lnprob = self.lnprobfn(p)
+        gradlnp = self.get_gradlnprob(p, dx=dx, order=order)
         gradlnp = self.gradfn(p)
         return(lnprob, gradlnp)
 
@@ -115,7 +119,6 @@ class NUTSSampler(Sampler):
 
         print('Running HMC with dual averaging and trajectory length %0.2f...' % delta)
         return self.sample(pos0, M, Madapt, delta, **kwargs)
-        print('Done.')
 
 
 class _function_wrapper(object):
@@ -177,7 +180,7 @@ def test_sampler():
                       [1.98, 4]])
 
     sampler = NUTSSampler(D, lnprobfn, gradfn)
-    samples = sampler.run_mcmc( theta0, M, Madapt, delta)
+    samples = sampler.run_mcmc(theta0, M, Madapt, delta)
 
     print('Percentiles')
     print (np.percentile(samples, [16, 50, 84], axis=0))
