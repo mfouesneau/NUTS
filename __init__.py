@@ -12,4 +12,7 @@ The package mainly contains:
 """
 
 from .nuts import nuts6, numerical_grad
-from .emcee_nuts import NUTSSampler
+try:
+    from .emcee_nuts import NUTSSampler
+except ImportError:
+    pass
