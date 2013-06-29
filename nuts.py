@@ -56,7 +56,6 @@ Carlo", Matthew D. Hoffman & Andrew Gelman
 """
 import numpy as np
 from numpy import log, exp, sqrt
-from random import random
 
 __all__ = ['numerical_grad', 'nuts6']
 
@@ -178,14 +177,24 @@ def find_reasonable_epsilon(theta0, grad0, logp0, f):
     r0 = np.random.normal(0., 1., len(theta0))
 
     # Figure out what direction we should be moving epsilon.
-    _, rprime, _, logpprime = leapfrog(theta0, r0, grad0, epsilon, f)
-    acceptprob = np.exp(logpprime - logp0 - 0.5 * (np.dot(rprime, rprime) - np.dot(r0, r0)))
+    _, rprime, gradprime, logpprime = leapfrog(theta0, r0, grad0, epsilon, f)
+    # brutal! This trick make sure the step is not huge leading to infinite
+    # values of the likelihood. This could also help to make sure theta stays
+    # within the prior domain (if any)
+    k = 1.
+    while np.isinf(logpprime) or np.isinf(gradprime):
+        k *= 0.5
+        _, rprime, _, logpprime = leapfrog(theta0, r0, grad0, epsilon * k, f)
+
+    epsilon = 0.5 * k * epsilon
+
+    acceptprob = np.exp(logpprime - logp0 - 0.5 * (np.dot(rprime, rprime.T) - np.dot(r0, r0.T)))
     a = 2. * float((acceptprob > 0.5)) - 1.
     # Keep moving epsilon in that direction until acceptprob crosses 0.5.
     while ( (acceptprob ** a) > (2. ** (-a))):
         epsilon = epsilon * (2. ** a)
         _, rprime, _, logpprime = leapfrog(theta0, r0, grad0, epsilon, f)
-        acceptprob = np.exp(logpprime - logp0 - 0.5 * ( np.dot(rprime, rprime) - np.dot(r0, r0)))
+        acceptprob = np.exp(logpprime - logp0 - 0.5 * ( np.dot(rprime, rprime.T) - np.dot(r0, r0.T)))
 
     print "find_reasonable_epsilon=", epsilon
 
@@ -231,7 +240,8 @@ def build_tree(theta, r, grad, logu, v, j, epsilon, f, joint0):
         gradminus = gradprime[:]
         gradplus = gradprime[:]
         # Compute the acceptance probability.
-        alphaprime = min(1., np.exp(logpprime - 0.5 * np.dot(rprime, rprime.T) - joint0))
+        alphaprime = min(1., np.exp(joint - joint0))
+        #alphaprime = min(1., np.exp(logpprime - 0.5 * np.dot(rprime, rprime.T) - joint0))
         nalphaprime = 1
     else:
         # Recursion: Implicitly build the height j-1 left and right subtrees.
@@ -243,7 +253,7 @@ def build_tree(theta, r, grad, logu, v, j, epsilon, f, joint0):
             else:
                 _, _, _, thetaplus, rplus, gradplus, thetaprime2, gradprime2, logpprime2, nprime2, sprime2, alphaprime2, nalphaprime2 = build_tree(thetaplus, rplus, gradplus, logu, v, j - 1, epsilon, f, joint0)
             # Choose which subtree to propagate a sample up from.
-            if (random() < (float(nprime2) / max(int(nprime) + int(nprime2), 1.))):
+            if (np.random.uniform() < (float(nprime2) / max(float(int(nprime) + int(nprime2)), 1.))):
                 thetaprime = thetaprime2[:]
                 gradprime = gradprime2[:]
                 logpprime = logpprime2
@@ -262,8 +272,13 @@ def nuts6(f, M, Madapt, theta0, delta=0.6):
     """
     Implements the No-U-Turn Sampler (NUTS) algorithm 6 from from the NUTS
     paper (Hoffman & Gelman, 2011).
+
     Runs Madapt steps of burn-in, during which it adapts the step size
     parameter epsilon, then starts generating samples to return.
+
+    Note the initial step size is tricky and not exactly the one from the
+    initial paper.  In fact the initial step size could be given by the user in
+    order to avoid potential problems
 
     INPUTS
     ------
@@ -288,7 +303,7 @@ def nuts6(f, M, Madapt, theta0, delta=0.6):
     KEYWORDS
     --------
     delta: float
-        initial step size that will be refined during the adaptation period (burn-in)
+        targeted acceptance fraction
 
     OUTPUTS
     -------
@@ -332,6 +347,10 @@ def nuts6(f, M, Madapt, theta0, delta=0.6):
         # Equivalent to (log(u) - joint) ~ exponential(1).
         logu = float(joint - np.random.exponential(1, size=1))
 
+        # if all fails, the next sample will be the previous one
+        samples[m, :] = samples[m - 1, :]
+        lnprob[m] = lnprob[m - 1]
+
         # initialize the tree
         thetaminus = samples[m - 1, :]
         thetaplus = samples[m - 1, :]
@@ -340,22 +359,13 @@ def nuts6(f, M, Madapt, theta0, delta=0.6):
         gradminus = grad[:]
         gradplus = grad[:]
 
-        # initial heigth j = 0
-        j = 0
-
-        # if all fails, the next sample will be the previous one
-        samples[m, :] = samples[m - 1, :]
-        lnprob[m] = lnprob[m - 1]
-
-        # Initially the only valid point is the initial point.
-        n = 1
-
-        #Main loop: will keep going until s == 0.
-        s = 1
+        j = 0  # initial heigth j = 0
+        n = 1  # Initially the only valid point is the initial point.
+        s = 1  # Main loop: will keep going until s == 0.
 
         while (s == 1):
             # Choose a direction. -1 = backwards, 1 = forwards.
-            v = int(2 * (random() < 0.5) - 1)
+            v = int(2 * (np.random.uniform() < 0.5) - 1)
 
             # Double the size of the tree.
             if (v == -1):
@@ -365,8 +375,8 @@ def nuts6(f, M, Madapt, theta0, delta=0.6):
 
             # Use Metropolis-Hastings to decide whether or not to move to a
             # point from the half-tree we just generated.
-            _tmp = float(nprime) / float(n)
-            if (sprime == 1) and (random() < _tmp):
+            _tmp = min(1, float(nprime) / float(n))
+            if (sprime == 1) and (np.random.uniform() < _tmp):
                 samples[m, :] = thetaprime[:]
                 lnprob[m] = logpprime
                 logp = logpprime
