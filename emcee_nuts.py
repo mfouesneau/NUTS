@@ -2,7 +2,8 @@
     http://dan.iel.fm/emcee/
 """
 import numpy as np
-from .nuts import nuts6, numerical_grad
+from .nuts import nuts6
+from .helpers import NutsSampler_fn_wrapper
 from emcee.sampler import Sampler
 
 
@@ -14,12 +15,9 @@ class NUTSSampler(Sampler):
 
     def __init__(self, dim, lnprobfn, gradfn=None, *args, **kwargs):
             self.dim = dim
-            self.lnprobfn = _function_wrapper(lnprobfn, args)
-            if gradfn is not None:
-                self.gradfn = _function_wrapper(gradfn, [])
-            else:
-                self.gradfn = None
-
+            self.f = NutsSampler_fn_wrapper(lnprobfn, gradfn, *args, **kwargs)
+            self.lnprobfn = self.f.lnp_func
+            self.gradfn = self.f.gradlnp_func
             self.reset()
 
     @property
@@ -53,15 +51,11 @@ class NUTSSampler(Sampler):
 
     def get_lnprob(self, p):
         """Return the log-probability at the given position."""
-        return self.lnprobfn(p, *self.args)
+        return self.lnprobfn(p)
 
     def get_gradlnprob(self, p, dx=1e-3, order=1):
         """Return the log-probability at the given position."""
-
-        if self.gradfn is not None:
-            return self.gradfn(p, *self.args)
-        else:
-            return numerical_grad(self.lnprobfn, p, dx=dx, order=dx)
+        return self.gradfn(p)
 
     def reset(self):
         """
@@ -121,29 +115,6 @@ class NUTSSampler(Sampler):
         return self.sample(pos0, M, Madapt, delta, **kwargs)
 
 
-class _function_wrapper(object):
-    """
-    This is a hack to make the likelihood function pickleable when ``args``
-    are also included.
-
-    """
-    def __init__(self, f, args):
-        self.f = f
-        self.args = args
-
-    def __call__(self, x):
-        try:
-            return self.f(x, *self.args)
-        except:
-            import traceback
-            print("NUTS: Exception while calling your likelihood function:")
-            print("  params:", x)
-            print("  args:", self.args)
-            print("  exception:")
-            traceback.print_exc()
-            raise
-
-
 def test_sampler():
     """ Example usage of NUTS_sampler: sampling a 2d highly correlated Gaussian distribution """
 
@@ -173,7 +144,7 @@ def test_sampler():
     M = 5000
     Madapt = 5000
     theta0 = np.random.normal(0, 1, D)
-    delta = 0.2
+    delta = 0.6
 
     mean = np.zeros(2)
     cov = np.asarray([[1, 1.98],

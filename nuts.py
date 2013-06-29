@@ -7,7 +7,6 @@ Content
 
 The package mainly contains:
   nuts6                     return samples using the NUTS
-  numerical_grad            return numerical estimate of the local gradient
   test_nuts6                example usage of this package
 
 and subroutines of nuts6:
@@ -57,79 +56,10 @@ Carlo", Matthew D. Hoffman & Andrew Gelman
 import numpy as np
 from numpy import log, exp, sqrt
 
-__all__ = ['numerical_grad', 'nuts6']
+__all__ = ['nuts6']
 
 
-def numerical_grad(f, theta, dx=1e-3, order=1):
-    """ return numerical estimate of the local gradient
-
-    The gradient is computer by using the Taylor expansion approximation over
-    each dimension:
-        f(t + dt) = f(t) + h df/dt(t) + h^2/2 d^2f/dt^2 + ...
-
-    The first order gives then:
-        df/dt = (f(t + dt) - f(t)) / dt + O(dt)
-    Note that we could also compute the backwards version by subtracting dt instead:
-        df/dt = (f(t) - f(t -dt)) / dt + O(dt)
-
-    A better approach is to use a 3-step formula where we evaluate the
-    derivative on both sides of a chosen point t using the above forward and
-    backward two-step formulae and taking the average afterward. We need to use the Taylor expansion to higher order:
-        f (t +/- dt) = f (t) +/- dt df/dt + dt ^ 2 / 2  dt^2 f/dt^2 +/- dt ^ 3 d^3 f/dt^3 + O(dt ^ 4)
-
-        df/dt = (f(t + dt) - f(t - dt)) / (2 * dt) + O(dt ^ 3)
-
-    Note: that the error is now of the order of dt ^ 3 instead of dt
-
-    In a same manner we can obtain the next order by using f(t +/- 2 * dt):
-        df/dt = (f(t - 2 * dt) - 8 f(t - dt)) + 8 f(t + dt) - f(t + 2 * dt) / (12 * dt) + O(dt ^ 4)
-
-    In the 2nd order, two additional function evaluations are required (per dimension), implying a
-    more time-consuming algorithm. However the approximation error is of the order of dt ^ 4
-
-
-    INPUTS
-    ------
-    f: callable
-        function from which estimating the gradient
-    theta: ndarray[float, ndim=1]
-        vector value around which estimating the gradient
-
-    KEYWORDS
-    --------
-    dx: float
-        pertubation to apply in each direction during the gradient estimation
-    order: int in [1, 2]
-        order of the estimates:
-            1 uses the central average over 2 points
-            2 uses the central average over 4 points
-
-    OUTPUTS
-    -------
-    df: ndarray[float, ndim=1]
-        gradient vector estimated at theta
-
-    COST: the gradient estimation need to evaluates ndim * (2 * order) points (see above)
-    CAUTION: if dt is very small, the limited numerical precision can result in big errors.
-    """
-    ndim = len(theta)
-    df = np.empty(ndim, dtype=float)
-    if order == 1:
-        cst = 0.5 / dx
-        for k in range(ndim):
-            dt = np.zeros(ndim, dtype=float)
-            dt[k] = dx
-            df[k] = (f(theta + dt) - f(theta - dt)) * cst
-    elif order == 2:
-        cst = 1. / (12. * dx)
-        for k in range(ndim):
-            dt = np.zeros(ndim, dtype=float)
-            dt[k] = dx
-            df[k] = cst * (f(theta - 2 * dt) - 8. * f(theta - dt) + 8. * f(theta + dt) - f(theta + 2. * dt) )
-    return df
-
-
-def  leapfrog(theta, r, grad, epsilon, f):
+def leapfrog(theta, r, grad, epsilon, f):
     """ Perfom a leapfrog jump in the Hamiltonian space
     INPUTS
     ------
@@ -182,7 +112,7 @@ def find_reasonable_epsilon(theta0, grad0, logp0, f):
     # values of the likelihood. This could also help to make sure theta stays
     # within the prior domain (if any)
     k = 1.
-    while np.isinf(logpprime) or np.isinf(gradprime):
+    while np.isinf(logpprime) or np.isinf(gradprime).any():
         k *= 0.5
         _, rprime, _, logpprime = leapfrog(theta0, r0, grad0, epsilon * k, f)
 

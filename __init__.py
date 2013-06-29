@@ -11,7 +11,8 @@ The package mainly contains:
   emcee                     emcee NUTS sampler
 """
 
-from .nuts import nuts6, numerical_grad
+from .nuts import nuts6
+from .helpers import numerical_grad, NutsSampler_fn_wrapper
 try:
     from .emcee_nuts import NUTSSampler
 except ImportError:
