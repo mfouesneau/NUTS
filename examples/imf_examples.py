@@ -99,7 +99,10 @@ def random_PowerLaw(N, alpha, M_min, M_max):
     """
     beta = 1. - alpha
     x = np.random.uniform(0., 1., N)
-    y = ((M_max ** beta - M_min ** beta) * x + M_min ** beta) ** (1. / beta)
+    if beta == 0:
+        y = M_min * np.exp( np.log(M_max / M_min) * x )
+    else:
+        y = ((M_max ** beta - M_min ** beta) * x + M_min ** beta) ** (1. / beta)
     return y
 
 
