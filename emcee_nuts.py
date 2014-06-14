@@ -2,7 +2,8 @@
     http://dan.iel.fm/emcee/
 """
 import numpy as np
-from .nuts import nuts6, numerical_grad
+from .nuts import nuts6
+from .helpers import NutsSampler_fn_wrapper
 from emcee.sampler import Sampler
 
 
@@ -14,9 +15,9 @@ class NUTSSampler(Sampler):
 
     def __init__(self, dim, lnprobfn, gradfn=None, *args, **kwargs):
             self.dim = dim
-            self.lnprobfn = _function_wrapper(lnprobfn, args)
-            self.gradfn = _function_wrapper(gradfn, [])
-
+            self.f = NutsSampler_fn_wrapper(lnprobfn, gradfn, *args, **kwargs)
+            self.lnprobfn = self.f.lnp_func
+            self.gradfn = self.f.gradlnp_func
             self.reset()
 
     @property
@@ -50,15 +51,11 @@ class NUTSSampler(Sampler):
 
     def get_lnprob(self, p):
         """Return the log-probability at the given position."""
-        return self.lnprobfn(p, *self.args)
+        return self.lnprobfn(p)
 
     def get_gradlnprob(self, p, dx=1e-3, order=1):
         """Return the log-probability at the given position."""
-
-        if self.gradfn is not None:
-            return self.gradfn(p, *self.args)
-        else:
-            return numerical_grad(self.lnprobfn, p, dx=dx, order=dx)
+        return self.gradfn(p)
 
     def reset(self):
         """
@@ -77,7 +74,7 @@ class NUTSSampler(Sampler):
         """An alias for :func:`reset` kept for backwards compatibility."""
         return self.reset()
 
-    def _sample_fn(self, p):
+    def _sample_fn(self, p, dx=1e-3, order=1):
         """ proxy function for nuts6 """
         lnprob = self.lnprobfn(p)
         gradlnp = self.gradfn(p)
@@ -115,7 +112,6 @@ class NUTSSampler(Sampler):
 
         print('Running HMC with dual averaging and trajectory length %0.2f...' % delta)
         return self.sample(pos0, M, Madapt, delta, **kwargs)
-        print('Done.')
 
 
 class _function_wrapper(object):
@@ -170,14 +166,14 @@ def test_sampler():
     M = 5000
     Madapt = 5000
     theta0 = np.random.normal(0, 1, D)
-    delta = 0.2
+    delta = 0.6
 
     mean = np.zeros(2)
     cov = np.asarray([[1, 1.98],
                       [1.98, 4]])
 
     sampler = NUTSSampler(D, lnprobfn, gradfn)
-    samples = sampler.run_mcmc( theta0, M, Madapt, delta)
+    samples = sampler.run_mcmc(theta0, M, Madapt, delta)
 
     print('Percentiles')
     print (np.percentile(samples, [16, 50, 84], axis=0))
