@@ -118,14 +118,17 @@ def find_reasonable_epsilon(theta0, grad0, logp0, f):
 
     epsilon = 0.5 * k * epsilon
 
-    acceptprob = np.exp(logpprime - logp0 - 0.5 * (np.dot(rprime, rprime.T) - np.dot(r0, r0.T)))
-
-    a = 2. * float((acceptprob > 0.5)) - 1.
+    # acceptprob = np.exp(logpprime - logp0 - 0.5 * (np.dot(rprime, rprime.T) - np.dot(r0, r0.T)))
+    # a = 2. * float((acceptprob > 0.5)) - 1.
+    logacceptprob = logpprime-logp0-0.5*(np.dot(rprime, rprime)-np.dot(r0,r0))
+    a = 1. if logacceptprob > np.log(0.5) else -1.
     # Keep moving epsilon in that direction until acceptprob crosses 0.5.
-    while ( (acceptprob ** a) > (2. ** (-a))):
+    # while ( (acceptprob ** a) > (2. ** (-a))):
+    while a * logacceptprob > -a * np.log(2):
         epsilon = epsilon * (2. ** a)
         _, rprime, _, logpprime = leapfrog(theta0, r0, grad0, epsilon, f)
-        acceptprob = np.exp(logpprime - logp0 - 0.5 * ( np.dot(rprime, rprime.T) - np.dot(r0, r0.T)))
+        # acceptprob = np.exp(logpprime - logp0 - 0.5 * ( np.dot(rprime, rprime.T) - np.dot(r0, r0.T)))
+        logacceptprob = logpprime-logp0-0.5*(np.dot(rprime, rprime)-np.dot(r0,r0))
 
     print "find_reasonable_epsilon=", epsilon
 
