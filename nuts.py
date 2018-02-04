@@ -339,6 +339,11 @@ def nuts6(f, M, Madapt, theta0, delta=0.6):
 def test_nuts6():
     """ Example usage of nuts6: sampling a 2d highly correlated Gaussian distribution """
 
+    class Counter:
+        def __init__(self, c=0):
+            self.c = c
+
+    c = Counter()
     def correlated_normal(theta):
         """
         Example of a target distribution that could be sampled from using NUTS.
@@ -351,12 +356,15 @@ def test_nuts6():
         A = np.asarray([[50.251256, -24.874372],
                         [-24.874372, 12.562814]])
 
+        # add the counter to count how many times this function is called
+        c.c += 1
+
         grad = -np.dot(theta, A)
         logp = 0.5 * np.dot(grad, theta.T)
         return logp, grad
 
     D = 2
-    M = 5000
+    M = 100000
     Madapt = 5000
     theta0 = np.random.normal(0, 1, D)
     delta = 0.2
@@ -368,6 +376,7 @@ def test_nuts6():
     print('Running HMC with dual averaging and trajectory length %0.2f...' % delta)
     samples, lnprob, epsilon = nuts6(correlated_normal, M, Madapt, theta0, delta)
     print('Done. Final epsilon = %f.' % epsilon)
+    print('(M+Madapt) / Functions called: %f' % ((M+Madapt)/float(c.c)))
 
     samples = samples[1::10, :]
     print('Percentiles')
