@@ -377,8 +377,23 @@ def test_nuts6():
     print('Stddev')
     print (np.std(samples, axis=0))
 
-    import pylab as plt
+    try:
+        import matplotlib.pyplot as plt
+    except ImportError:
+        import pylab as plt
     temp = np.random.multivariate_normal(mean, cov, size=500)
+    plt.subplot(1,3,1)
     plt.plot(temp[:, 0], temp[:, 1], '.')
     plt.plot(samples[:, 0], samples[:, 1], 'r+')
+
+    plt.subplot(1,3,2)
+    plt.hist(samples[:,0], bins=50)
+    plt.xlabel("x-samples")
+
+    plt.subplot(1,3,3)
+    plt.hist(samples[:,1], bins=50)
+    plt.xlabel("y-samples")
     plt.show()
+
+if __name__ == "__main__":
+    test_nuts6()
