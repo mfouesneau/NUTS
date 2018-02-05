@@ -194,7 +194,7 @@ def test_nuts6():
     plt.figure(1)
 
     # Print Monte-Carlo estimate of alpha.
-    print "Mean:  " + str(np.mean(A))
+    print("Mean:  " + str(np.mean(A)))
     per = np.percentile(A, [16, 50, 84])
     print("Alpha = {} (+{} / - {})".format( per[1], per[2] - per[1], per[1] - per[0] ))
 
@@ -244,7 +244,7 @@ try:
         plt.figure(1)
 
         # Print Monte-Carlo estimate of alpha.
-        print "Mean:  " + str(np.mean(A))
+        print("Mean:  " + str(np.mean(A)))
         per = np.percentile(A, [16, 50, 84])
         print("Alpha = {} (+{} / - {})".format( per[1], per[2] - per[1], per[1] - per[0] ))
 
