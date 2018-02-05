@@ -118,14 +118,17 @@ def find_reasonable_epsilon(theta0, grad0, logp0, f):
 
     epsilon = 0.5 * k * epsilon
 
-    acceptprob = np.exp(logpprime - logp0 - 0.5 * (np.dot(rprime, rprime.T) - np.dot(r0, r0.T)))
-
-    a = 2. * float((acceptprob > 0.5)) - 1.
+    # acceptprob = np.exp(logpprime - logp0 - 0.5 * (np.dot(rprime, rprime.T) - np.dot(r0, r0.T)))
+    # a = 2. * float((acceptprob > 0.5)) - 1.
+    logacceptprob = logpprime-logp0-0.5*(np.dot(rprime, rprime)-np.dot(r0,r0))
+    a = 1. if logacceptprob > np.log(0.5) else -1.
     # Keep moving epsilon in that direction until acceptprob crosses 0.5.
-    while ( (acceptprob ** a) > (2. ** (-a))):
+    # while ( (acceptprob ** a) > (2. ** (-a))):
+    while a * logacceptprob > -a * np.log(2):
         epsilon = epsilon * (2. ** a)
         _, rprime, _, logpprime = leapfrog(theta0, r0, grad0, epsilon, f)
-        acceptprob = np.exp(logpprime - logp0 - 0.5 * ( np.dot(rprime, rprime.T) - np.dot(r0, r0.T)))
+        # acceptprob = np.exp(logpprime - logp0 - 0.5 * ( np.dot(rprime, rprime.T) - np.dot(r0, r0.T)))
+        logacceptprob = logpprime-logp0-0.5*(np.dot(rprime, rprime)-np.dot(r0,r0))
 
     print "find_reasonable_epsilon=", epsilon
 
@@ -336,6 +339,11 @@ def nuts6(f, M, Madapt, theta0, delta=0.6):
 def test_nuts6():
     """ Example usage of nuts6: sampling a 2d highly correlated Gaussian distribution """
 
+    class Counter:
+        def __init__(self, c=0):
+            self.c = c
+
+    c = Counter()
     def correlated_normal(theta):
         """
         Example of a target distribution that could be sampled from using NUTS.
@@ -348,12 +356,15 @@ def test_nuts6():
         A = np.asarray([[50.251256, -24.874372],
                         [-24.874372, 12.562814]])
 
+        # add the counter to count how many times this function is called
+        c.c += 1
+
         grad = -np.dot(theta, A)
         logp = 0.5 * np.dot(grad, theta.T)
         return logp, grad
 
     D = 2
-    M = 5000
+    M = 100000
     Madapt = 5000
     theta0 = np.random.normal(0, 1, D)
     delta = 0.2
@@ -365,6 +376,7 @@ def test_nuts6():
     print('Running HMC with dual averaging and trajectory length %0.2f...' % delta)
     samples, lnprob, epsilon = nuts6(correlated_normal, M, Madapt, theta0, delta)
     print('Done. Final epsilon = %f.' % epsilon)
+    print('(M+Madapt) / Functions called: %f' % ((M+Madapt)/float(c.c)))
 
     samples = samples[1::10, :]
     print('Percentiles')
@@ -374,8 +386,23 @@ def test_nuts6():
     print('Stddev')
     print (np.std(samples, axis=0))
 
-    import pylab as plt
+    try:
+        import matplotlib.pyplot as plt
+    except ImportError:
+        import pylab as plt
     temp = np.random.multivariate_normal(mean, cov, size=500)
+    plt.subplot(1,3,1)
     plt.plot(temp[:, 0], temp[:, 1], '.')
     plt.plot(samples[:, 0], samples[:, 1], 'r+')
+
+    plt.subplot(1,3,2)
+    plt.hist(samples[:,0], bins=50)
+    plt.xlabel("x-samples")
+
+    plt.subplot(1,3,3)
+    plt.hist(samples[:,1], bins=50)
+    plt.xlabel("y-samples")
     plt.show()
+
+if __name__ == "__main__":
+    test_nuts6()
