@@ -33,6 +33,9 @@ In practice, the implementation still requires a number of steps, a burning peri
 
 [1]: http://arxiv.org/abs/1111.4246
 
+[![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/mfouesneau/NUTS/master?filepath=examples%2Fimf_examples.ipynb)
+
+
 Example Usage
 -------------
 **sampling a 2d highly correlated Gaussian distribution**
