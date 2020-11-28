@@ -55,38 +55,9 @@ Carlo", Matthew D. Hoffman & Andrew Gelman
 """
 import numpy as np
 from numpy import log, exp, sqrt
-try:
-    import tqdm
-except ImportError:
-    tqdm = None
+from .helpers import progress_range
 
 __all__ = ['nuts6']
-
-def progress_range(minimum, maximum, progress=True):
-    """A range-like function which displays progress information.
-
-    INPUTS
-    ------
-    minimum: int
-        Lower bound of range
-    maximum: int
-        Upper bound of range
-    KEYWORDS
-    --------
-    progress: bool
-        If True, show progress, otherwise display nothing
-    """
-    if not progress:
-        for i in range(minimum, maximum):
-            yield i
-    elif tqdm is not None:
-        for i in tqdm.trange(minimum, maximum):
-            yield i
-    else:
-        for i in range(minimum, maximum):
-            if i % 100 == 0:
-                print('iteration %i/%i' % (i, maximum-minimum))
-            yield i
 
 def leapfrog(theta, r, grad, epsilon, f):
     """ Perfom a leapfrog jump in the Hamiltonian space
