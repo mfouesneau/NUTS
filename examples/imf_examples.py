@@ -187,7 +187,7 @@ def test_nuts6():
 
     t_start = time.time()
     print("Starting Sampling at %s" % time.ctime(t_start))
-    A, lnprob, epsilon = nuts6(nuts_fn, M, Madapt, theta0, delta)
+    A, lnprob, epsilon = nuts6(nuts_fn, M, Madapt, theta0, delta, progress=True)
     t_stop = time.time()
     print("Sampling Completed in %0.2f seconds" % (t_stop - t_start))
 

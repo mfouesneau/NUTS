@@ -55,9 +55,23 @@ Carlo", Matthew D. Hoffman & Andrew Gelman
 """
 import numpy as np
 from numpy import log, exp, sqrt
+try:
+    import tqdm
+except ImportError:
+    tqdm = None
 
 __all__ = ['nuts6']
 
+def progress_range(minimum, maximum, progress=True):
+    if not progress:
+        yield from range(minimum, maximum)
+    elif tqdm is not None:
+        yield from tqdm.trange(minimum, maximum)
+    else:
+        for i in range(minimum, maximum):
+            if i % 100 == 0:
+                print('iteration %i/%i' % (i, maximum-minimum))
+            yield i
 
 def leapfrog(theta, r, grad, epsilon, f):
     """ Perfom a leapfrog jump in the Hamiltonian space
@@ -202,7 +216,7 @@ def build_tree(theta, r, grad, logu, v, j, epsilon, f, joint0):
     return thetaminus, rminus, gradminus, thetaplus, rplus, gradplus, thetaprime, gradprime, logpprime, nprime, sprime, alphaprime, nalphaprime
 
 
-def nuts6(f, M, Madapt, theta0, delta=0.6):
+def nuts6(f, M, Madapt, theta0, delta=0.6, progress=False):
     """
     Implements the No-U-Turn Sampler (NUTS) algorithm 6 from from the NUTS
     paper (Hoffman & Gelman, 2011).
@@ -239,6 +253,9 @@ def nuts6(f, M, Madapt, theta0, delta=0.6):
     delta: float
         targeted acceptance fraction
 
+    progress: bool
+        whether to show progress (requires tqdm module for full functionality)
+
     OUTPUTS
     -------
     samples: ndarray[float, ndim=2]
@@ -270,7 +287,7 @@ def nuts6(f, M, Madapt, theta0, delta=0.6):
     epsilonbar = 1
     Hbar = 0
 
-    for m in range(1, M + Madapt):
+    for m in progress_range(1, M + Madapt, progress=progress):
         # Resample momenta.
         r0 = np.random.normal(0, 1, D)
 

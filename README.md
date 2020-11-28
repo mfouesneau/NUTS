@@ -75,10 +75,10 @@ cov = np.asarray([[1, 1.98],
                   [1.98, 4]])
 ```
 
-* run the sampling:
+* run the sampling (note that the `tqdm` module is required for full progress bar functionality):
 
 ```python
-samples, lnprob, epsilon = nuts6(correlated_normal, M, Madapt, theta0, delta)
+samples, lnprob, epsilon = nuts6(correlated_normal, M, Madapt, theta0, delta, progress=True)
 ```
 
 * some statistics: expecting mean = (0, 0) and std = (1., 4.)
