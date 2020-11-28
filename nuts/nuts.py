@@ -63,10 +63,25 @@ except ImportError:
 __all__ = ['nuts6']
 
 def progress_range(minimum, maximum, progress=True):
+    """A range-like function which displays progress information.
+
+    INPUTS
+    ------
+    minimum: int
+        Lower bound of range
+    maximum: int
+        Upper bound of range
+    KEYWORDS
+    --------
+    progress: bool
+        If True, show progress, otherwise display nothing
+    """
     if not progress:
-        yield from range(minimum, maximum)
+        for i in range(minimum, maximum):
+            yield i
     elif tqdm is not None:
-        yield from tqdm.trange(minimum, maximum)
+        for i in tqdm.trange(minimum, maximum):
+            yield i
     else:
         for i in range(minimum, maximum):
             if i % 100 == 0:
