@@ -4,13 +4,12 @@
 import numpy as np
 from .nuts import nuts6
 from .helpers import NutsSampler_fn_wrapper
-from emcee.sampler import Sampler
 
 
 __all__ = ['NUTSSampler', 'test_sampler']
 
 
-class NUTSSampler(Sampler):
+class NUTSSampler:
     """ A sampler object mirroring emcee.sampler object definition"""
 
     def __init__(self, dim, lnprobfn, gradfn=None, *args, **kwargs):
