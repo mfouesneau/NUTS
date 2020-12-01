@@ -79,9 +79,10 @@ class NUTSSampler:
         gradlnp = self.gradfn(p)
         return(lnprob, gradlnp)
 
-    def sample(self, pos0, M, Madapt, delta=0.6, **kwargs):
+    def sample(self, pos0, M, Madapt, delta=0.6, progress=False, **kwargs):
         """ Runs NUTS6 """
-        samples, lnprob, epsilon = nuts6(self._sample_fn, M, Madapt, pos0, delta)
+        samples, lnprob, epsilon = nuts6(
+            self._sample_fn, M, Madapt, pos0, delta, progress=progress)
         self._chain = samples
         self._lnprob = lnprob
         self._epsilon = epsilon
@@ -172,7 +173,7 @@ def test_sampler():
                       [1.98, 4]])
 
     sampler = NUTSSampler(D, lnprobfn, gradfn)
-    samples = sampler.run_mcmc(theta0, M, Madapt, delta)
+    samples = sampler.run_mcmc(theta0, M, Madapt, delta, progress=True)
 
     print('Percentiles')
     print (np.percentile(samples, [16, 50, 84], axis=0))
